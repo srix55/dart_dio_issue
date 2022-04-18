@@ -1,0 +1,4 @@
+rootProject.name = 'dart_dio_issue'
+include 'server-quarkus'
+include 'api'
+

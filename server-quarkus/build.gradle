@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+
+    id 'io.quarkus' version '2.8.0.Final'
+
+    id "org.openapi.generator" version "5.4.0"
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation platform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation group: 'io.quarkus', name: 'quarkus-arc', version: '2.8.0.Final'
+    implementation group: 'io.quarkus', name: 'quarkus-resteasy', version: '2.8.0.Final'
+    implementation group: 'io.quarkus', name: 'quarkus-resteasy-jackson', version: '2.8.0.Final'
+
+    testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.0.1'
+
+    // purely to avoid stripping the swagger annotations off the auto generated openapi-spec data models
+    implementation group: 'io.swagger', name: 'swagger-annotations', version: '1.6.6'
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+version '1.0.0'
+
+// Generate the data models from OpenAPI specs for rest-controllers
+task buildModels(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    // For options refer [site](https://openapi-generator.tech/docs/generators/java)
+    generatorName = "java"
+    inputSpec = file("$buildDir/../../api/openapi.yaml").absolutePath
+    outputDir = file("$buildDir/autogen-openapi-generator").absolutePath
+    apiPackage = "punyautogen"
+    invokerPackage = "example.rest.invoker"
+    modelPackage = "example.restmodels"
+    library = 'resteasy'
+    configOptions = [
+            dateLibrary: "java8"
+    ]
+    globalProperties = [
+            modelDocs: "false"
+    ]
+}
+task copyRestModelsFromBuild(type: Copy) {
+    from (file("$buildDir/autogen-openapi-generator/src/main/java/example/restmodels").absolutePath)
+    into (file("$buildDir/../src/main/java/example/restmodels").absolutePath)
+}
+
+buildModels.finalizedBy(copyRestModelsFromBuild);
+build.dependsOn(buildModels)
+
+compileJava.dependsOn(copyRestModelsFromBuild); // to avoid gradle dependency warnings

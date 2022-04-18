@@ -1,0 +1,45 @@
+openapi: 3.0.0
+servers:
+  - url: 'https://test.example.com'
+info:
+  title: Dart Dio Issue API
+  description: Dartdio OpenAPI spec
+  termsOfService: 'http://leanpixels.com/terms/'
+  contact:
+    name: API Support
+    url: 'http://test.example.com/support'
+    email: support@example.com
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+  version: 1.0.0
+paths:
+  /hello:
+    get:
+      summary: Get a hello message
+      operationId: sayHello
+      description: says hello
+      parameters:
+        - in: header
+          name: request-id
+          required: true
+          schema:
+            type: object
+            $ref: '#/components/schemas/RequestTraceHeader'
+      responses:
+        '200':
+          description: 'Hello Guy, it says'
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  schemas:
+    RequestTraceHeader:
+      type: object
+      required:
+        - requestId
+      properties:
+        requestId:
+          type: string
+          example: '2022-18-11:30-0029-dev234'
